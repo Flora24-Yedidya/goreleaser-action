@@ -1,37 +1,36 @@
 name: Lint
+
 on:
-  pull_request:
   push:
+  pull_request:
   workflow_dispatch:
 
 jobs:
-  lint:
+  static-analysis:
+    name: Static analysis
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Set up Super-Linter
-        uses: github/super-linter@v4
-        with:
-          skip-languages: ruby,java
-          commit-lint: disabled
-          css: disabled
-          html: disabled
-          json: disabled
-          yaml: enabled
-
       - name: Run semgrep
-        uses: returntocorp/semgrep-action@v1
+        uses: returntocorp/semgrep-action@v1.3.0
         with:
-          config: "p/ci"
-          # optionally, customize the target path
-          # path: "src/"
-
+          config: "p/python"
+  dockerfile-analysis:
+    name: Dockerfile analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
       - name: Run hadolint
-        uses: hadolint/hadolint-action@v1
+        run: docker run --rm -i hadolint/hadolint < Dockerfile
+  super-linter:
+    name: Super linter
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v2
+      - uses: github/super-linter@v4.10.0
         with:
-          # Optionally, customize the Dockerfile path
-          # dockerfile: "Dockerfile"
-          # Enable experimental features
-          # experimental: true
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          validation-matrix: 'go: ["1.17", "1.18", "1.19"]'
