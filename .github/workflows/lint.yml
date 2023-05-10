@@ -1,0 +1,37 @@
+name: Lint
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Super-Linter
+        uses: github/super-linter@v4
+        with:
+          skip-languages: ruby,java
+          commit-lint: disabled
+          css: disabled
+          html: disabled
+          json: disabled
+          yaml: enabled
+
+      - name: Run semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: "p/ci"
+          # optionally, customize the target path
+          # path: "src/"
+
+      - name: Run hadolint
+        uses: hadolint/hadolint-action@v1
+        with:
+          # Optionally, customize the Dockerfile path
+          # dockerfile: "Dockerfile"
+          # Enable experimental features
+          # experimental: true
